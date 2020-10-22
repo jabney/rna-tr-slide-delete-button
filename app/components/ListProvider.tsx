@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 
 export interface Item {
   id: string;
@@ -99,7 +99,10 @@ export const ListProvider: React.FC = ({children}) => {
   const [svc] = useState(() => new ListService());
   const [list, setList] = useState<readonly Item[]>([]);
 
-  const refreshList = () => void svc.getAll().then((x) => setList(x));
+  const refreshList = useCallback(
+    () => void svc.getAll().then((x) => setList(x)),
+    [],
+  );
 
   useEffect(refreshList, []);
   useEffect(() => svc.addListener(refreshList), []);
