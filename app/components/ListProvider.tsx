@@ -59,8 +59,11 @@ const dummyData: Item[] = [
   },
 ];
 
+let nextId = 0;
+
 class ListService {
   private data = dummyData.slice();
+  private subscribers = new Map<number, () => void>();
 
   async getAll() {
     return this.data;
@@ -68,6 +71,19 @@ class ListService {
 
   async delete(id: string) {
     this.data = this.data.filter((item) => item.id !== id);
+    this.notify();
+  }
+
+  addListener(cb: () => void) {
+    const id = nextId++;
+    this.subscribers.set(id, cb);
+    return () => void this.subscribers.delete(id);
+  }
+
+  private notify() {
+    for (const cb of this.subscribers.values()) {
+      cb();
+    }
   }
 }
 
@@ -83,17 +99,16 @@ export const ListProvider: React.FC = ({children}) => {
   const [svc] = useState(() => new ListService());
   const [list, setList] = useState<readonly Item[]>([]);
 
-  const fetch = () => void svc.getAll().then((x) => setList(x));
-  useEffect(fetch, []);
+  const refreshList = () => void svc.getAll().then((x) => setList(x));
+
+  useEffect(refreshList, []);
+  useEffect(() => svc.addListener(refreshList), []);
 
   return (
     <ListContext.Provider
       value={{
         list,
-        deleteItem: async (id: string) => {
-          await svc.delete(id);
-          await fetch();
-        },
+        deleteItem: (id: string) => svc.delete(id),
       }}>
       {children}
     </ListContext.Provider>
