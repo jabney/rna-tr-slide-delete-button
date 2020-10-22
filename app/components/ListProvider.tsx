@@ -72,7 +72,7 @@ class ListService {
 }
 
 export const ListContext = React.createContext<{
-  list: Item[];
+  list: readonly Item[];
   deleteItem: (id: string) => Promise<void>;
 }>({
   list: [],
@@ -81,7 +81,7 @@ export const ListContext = React.createContext<{
 
 export const ListProvider: React.FC = ({children}) => {
   const [svc] = useState(() => new ListService());
-  const [list, setList] = useState<Item[]>([]);
+  const [list, setList] = useState<readonly Item[]>([]);
 
   const fetch = () => void svc.getAll().then((x) => setList(x));
   useEffect(fetch, []);
