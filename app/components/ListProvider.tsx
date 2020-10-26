@@ -61,12 +61,7 @@ const dummyData: Item[] = [
 
 class ListService {
   private data = dummyData.slice();
-  private subscribers = new Map<number, () => void>();
-  private static nextId = 0;
-
-  private nextId() {
-    return ListService.nextId++;
-  }
+  private subscribers = new Set<() => void>();
 
   async getAll() {
     return this.data;
@@ -78,9 +73,8 @@ class ListService {
   }
 
   addListener(cb: () => void) {
-    const id = this.nextId();
-    this.subscribers.set(id, cb);
-    return () => void this.subscribers.delete(id);
+    this.subscribers.add(cb);
+    return () => void this.subscribers.delete(cb);
   }
 
   private notify() {
