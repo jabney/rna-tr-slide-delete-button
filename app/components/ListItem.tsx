@@ -66,6 +66,7 @@ export const ListItem: React.FC<Props> = ({item}) => {
           });
         }
         setTouchStart(e.locationX);
+        // setTouchStart(e.locationX - touchDelta.current);
       }}
       onTouchMove={({nativeEvent: e}) => {
         if (isAnimating.current && e.locationX > touchStart) {
