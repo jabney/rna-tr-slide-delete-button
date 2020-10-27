@@ -1,5 +1,5 @@
 import React, {useContext} from 'react';
-import {Animated, ListRenderItemInfo} from 'react-native';
+import {FlatList, ListRenderItemInfo} from 'react-native';
 import {ListItem} from './ListItem';
 import {Item, ListContext} from 'app/components/ListProvider';
 
@@ -15,10 +15,6 @@ export const List: React.FC<Props> = () => {
   const {list} = useContext(ListContext);
 
   return (
-    <Animated.FlatList
-      data={list}
-      renderItem={renderItem}
-      keyExtractor={keyExtractor}
-    />
+    <FlatList data={list} renderItem={renderItem} keyExtractor={keyExtractor} />
   );
 };
