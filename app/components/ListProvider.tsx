@@ -60,24 +60,24 @@ const dummyData: Item[] = [
 ];
 
 class ListService {
-  private data = dummyData.slice();
+  private data: readonly Item[] = dummyData.slice();
   private subscribers = new Set<() => void>();
 
-  async getAll() {
-    return this.data;
+  async getAll(): Promise<readonly Item[]> {
+    return this.data.slice();
   }
 
-  async delete(id: string) {
+  async delete(id: string): Promise<void> {
     this.data = this.data.filter((item) => item.id !== id);
     this.notify();
   }
 
-  addListener(cb: () => void) {
+  addListener(cb: () => void): () => void {
     this.subscribers.add(cb);
     return () => void this.subscribers.delete(cb);
   }
 
-  private notify() {
+  private notify(): void {
     for (const cb of this.subscribers.values()) {
       cb();
     }
