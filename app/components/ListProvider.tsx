@@ -6,6 +6,8 @@ export interface Item {
   description: string;
 }
 
+export type ReadonlyList = readonly Item[];
+
 const dummyData: Item[] = [
   {
     id: '1',
@@ -59,33 +61,37 @@ const dummyData: Item[] = [
   },
 ];
 
-class ListService {
-  private data: readonly Item[] = dummyData.slice();
-  private subscribers = new Set<() => void>();
+type ListObserver = (list: ReadonlyList) => void;
+type Disposer = () => void;
 
-  async getAll(): Promise<readonly Item[]> {
-    return this.data.slice();
+class ListService {
+  private list: ReadonlyList = dummyData.slice();
+  private subscribers = new Set<ListObserver>();
+
+  async getAll(): Promise<ReadonlyList> {
+    return this.list.slice();
   }
 
   async delete(id: string): Promise<void> {
-    this.data = this.data.filter((item) => item.id !== id);
+    this.list = this.list.filter((item) => item.id !== id);
     this.notify();
   }
 
-  addListener(cb: () => void): () => void {
-    this.subscribers.add(cb);
-    return () => void this.subscribers.delete(cb);
+  observe(observer: ListObserver): Disposer {
+    this.subscribers.add(observer);
+    observer(this.list);
+    return () => void this.subscribers.delete(observer);
   }
 
   private notify(): void {
-    for (const cb of this.subscribers.values()) {
-      cb();
+    for (const observer of this.subscribers.values()) {
+      observer(this.list);
     }
   }
 }
 
 export const ListContext = React.createContext<{
-  list: readonly Item[];
+  list: ReadonlyList;
   deleteItem: (id: string) => Promise<void>;
 }>({
   list: [],
@@ -94,15 +100,9 @@ export const ListContext = React.createContext<{
 
 export const ListProvider: React.FC = ({children}) => {
   const [svc] = useState(() => new ListService());
-  const [list, setList] = useState<readonly Item[]>([]);
+  const [list, setList] = useState<ReadonlyList>([]);
 
-  const refreshList = useCallback(
-    () => void svc.getAll().then((x) => setList(x)),
-    [],
-  );
-
-  useEffect(refreshList, []);
-  useEffect(() => svc.addListener(refreshList), []);
+  useEffect(() => svc.observe(setList), []);
 
   return (
     <ListContext.Provider
