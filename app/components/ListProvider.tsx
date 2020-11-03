@@ -66,7 +66,7 @@ type Disposer = () => void;
 
 class ListService {
   private list: ReadonlyList = dummyData.slice();
-  private subscribers = new Set<ListObserver>();
+  private observers = new Set<ListObserver>();
 
   async getAll(): Promise<ReadonlyList> {
     return this.list.slice();
@@ -78,13 +78,13 @@ class ListService {
   }
 
   observe(observer: ListObserver): Disposer {
-    this.subscribers.add(observer);
+    this.observers.add(observer);
     observer(this.list);
-    return () => void this.subscribers.delete(observer);
+    return () => void this.observers.delete(observer);
   }
 
   private notify(): void {
-    for (const observer of this.subscribers.values()) {
+    for (const observer of this.observers.values()) {
       observer(this.list);
     }
   }
